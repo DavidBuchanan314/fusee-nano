@@ -1,5 +1,5 @@
 CC= gcc
-CFLAGS= -Wall -Wpedantic -Wextra
+CFLAGS= -Wall -Wpedantic -Wextra -std=c99 -DDEBUG
 OBJ= exploit.o usb.o
 TARGET= fusee-nano
 SRCDIR= ./src/
