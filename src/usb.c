@@ -5,81 +5,98 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
+#include <stdarg.h>
+#include <errno.h>
 #include "usb.h"
 
 #define SYSFS_DEVICES "/sys/bus/usb/devices"
-#define ID_LEN 4
+#define USBFS_PATH "/dev/bus/usb"
 
-int get_device(int vid, int pid) {
+/* silly fscanf wrapper that takes a path */
+static int scanf_path(const char *path, const char* fmt, ...) {
+	int result;
+	FILE *fd;
+	va_list args;
+	
+	va_start(args, fmt);
+	
+	if((fd = fopen(path, "r")) == NULL)
+		return 0;
+	
+	result = vfscanf(fd, fmt, args);
+	
+	fclose(fd);
+	va_end(args);
+	return result;
+}
+
+/* returns 0 on sucess, -1 on fail */
+static int find_sysfs_dir(char *path, size_t pathlen, int vid, int pid) {
 	DIR *d;
 	struct dirent *dir;
-	char vid_str[ID_LEN+1];
-	char pid_str[ID_LEN+1];
-	char read_id[ID_LEN+1];
-	char dev_path[PATH_MAX];
-	int fd;
-	bool constraints_match;
+	char tmp_path[PATH_MAX];
+	int found = -1;
+	int tmp;
 	
-	snprintf(vid_str, sizeof(vid_str), "%04x", vid);
-	snprintf(pid_str, sizeof(pid_str), "%04x", pid);
+	if((d = opendir(SYSFS_DEVICES)) == NULL)
+		return -1;
 	
-	char *constraints[][2] = {
-		/* file name, contents */
-		{"idVendor", vid_str},
-		{"idProduct", pid_str}
-	};
-	
-	d = opendir(SYSFS_DEVICES);
-	if (d) {
-		while ((dir = readdir(d)) != NULL) {
-			if (dir->d_name[0] == '.')
-				continue;
-			
-			constraints_match = true;
-			for (int i = 0; i < (int)(sizeof(constraints) / sizeof(constraints[0])); i++) {
-				snprintf(
-					dev_path,
-					sizeof(dev_path),
-					SYSFS_DEVICES "/%s/%s",
-					dir->d_name,
-					constraints[i][0]);
-				
-				if ((fd = open(dev_path, O_RDONLY)) < 0) {
-					constraints_match = false;
-					break;
-				}
-				
-				if (read(fd, read_id, ID_LEN) < ID_LEN) {
-					constraints_match = false;
-					close(fd);
-					break;
-				}
-				
-				close(fd);
-				
-				if (strncmp(read_id, constraints[i][1], ID_LEN) != 0) {
-					constraints_match = false;
-					break;
-				}
-			}
-			
-			if (!constraints_match)
-				continue;
-			
-			/* if we got this far, the vid/pid matched */
-			closedir(d);
-			snprintf(
-				dev_path,
-				sizeof(dev_path),
-				SYSFS_DEVICES "/%s/descriptors",
-				dir->d_name);
-			
-			printf("Found device: %s\n", dev_path); // DEBUG
-			
-			return open(dev_path, O_RDONLY);
-		}
-		closedir(d);
+	while ((dir = readdir(d)) != NULL) {
+		if (dir->d_name[0] == '.')
+			continue;
+		
+		snprintf(tmp_path,
+			sizeof(tmp_path),
+			SYSFS_DEVICES "/%s/idVendor",
+			dir->d_name);
+		
+		if (scanf_path(tmp_path, "%x", &tmp) != 1 || tmp != vid)
+			continue;
+		
+		snprintf(tmp_path,
+			sizeof(tmp_path),
+			SYSFS_DEVICES "/%s/idProduct",
+			dir->d_name);
+		
+		if (scanf_path(tmp_path, "%x", &tmp) != 1 || tmp != pid)
+			continue;
+		
+		found = 0; // success!
+		snprintf(path,
+			pathlen,
+			SYSFS_DEVICES "/%s",
+			dir->d_name);
 	}
-	return -1;
+	
+	closedir(d);
+	return found;
+}
+
+int get_device(int vid, int pid) {
+	char sysfs_dir[PATH_MAX];
+	char tmp_path[PATH_MAX];
+	int busnum, devnum;
+	
+	if (find_sysfs_dir(sysfs_dir, sizeof(sysfs_dir), vid, pid) < 0) {
+		errno = ENXIO; // is this a suitable errno?
+		return -1;
+	}
+	
+	strncpy(tmp_path, sysfs_dir, sizeof(tmp_path));
+	strncat(tmp_path, "/busnum", sizeof(tmp_path)-1);
+	if (scanf_path(tmp_path, "%d", &busnum) != 1) // XXX is this a decimal value?
+		return -1;
+	
+	strncpy(tmp_path, sysfs_dir, sizeof(tmp_path));
+	strncat(tmp_path, "/devnum", sizeof(tmp_path)-1);
+	if (scanf_path(tmp_path, "%d", &devnum) != 1) // XXX is this a decimal value?
+		return -1;
+	
+	snprintf(tmp_path,
+		sizeof(tmp_path),
+		USBFS_PATH "/%03d/%03d",
+		busnum,
+		devnum);
+	
+	return open(tmp_path, O_RDWR);
 }
