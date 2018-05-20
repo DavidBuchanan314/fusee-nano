@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -109,7 +110,8 @@ int get_device(int vid, int pid)
 
 int claim_interface(int fd)
 {
-	return ioctl(fd, USBDEVFS_CLAIMINTERFACE);
+	int ifnum = 0;
+	return ioctl(fd, USBDEVFS_CLAIMINTERFACE, &ifnum);
 }
 
 int ep_read(int fd,
@@ -142,4 +144,39 @@ int ep_write(int fd,
 	};
 	
 	return ioctl(fd, USBDEVFS_BULK, &bulkt);
+}
+
+int ctrl_transfer_unbounded(int fd, int length)
+{
+	int buf_size = sizeof(struct usb_ctrlrequest) + length;
+	char *buffer = calloc(1, buf_size);
+	struct usbdevfs_urb *purb;
+	
+	struct usb_ctrlrequest *ctrl_req = (struct usb_ctrlrequest *) buffer;
+	ctrl_req->bRequestType = USB_DIR_IN | USB_RECIP_ENDPOINT;
+	ctrl_req->bRequest = USB_REQ_GET_STATUS;
+	ctrl_req->wLength = length;
+	
+	struct usbdevfs_urb urb = {
+			.type = USBDEVFS_URB_TYPE_CONTROL,
+			.endpoint = 0,
+			.buffer = buffer,
+			.buffer_length = buf_size,
+			.usercontext = (void *) 0x1337,
+	};
+	
+	if (ioctl(fd, USBDEVFS_SUBMITURB, &urb) < 0)
+		return -1;
+	
+	if (ioctl(fd, USBDEVFS_DISCARDURB, &urb) < 0)
+		return -2;
+	
+	if (ioctl(fd, USBDEVFS_REAPURB, &purb) < 0)
+		return -3;
+	
+	if (purb->usercontext != (void *) 0x1337)
+		return -4;
+	
+	free(buffer); // XXX buffer does not get freed under error conditions
+	return 0;
 }

@@ -20,4 +20,6 @@ int ep_write(int fd,
 	unsigned int len,
 	unsigned int timeout);
 
+int ctrl_transfer_unbounded(int fd, int length);
+
 #endif /* USB_H */
