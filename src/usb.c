@@ -91,12 +91,12 @@ int get_device(int vid, int pid)
 	
 	strncpy(tmp_path, sysfs_dir, sizeof(tmp_path));
 	strncat(tmp_path, "/busnum", sizeof(tmp_path)-1);
-	if (scanf_path(tmp_path, "%d", &busnum) != 1) // XXX is this a decimal value?
+	if (scanf_path(tmp_path, "%d", &busnum) != 1)
 		return -1;
 	
 	strncpy(tmp_path, sysfs_dir, sizeof(tmp_path));
 	strncat(tmp_path, "/devnum", sizeof(tmp_path)-1);
-	if (scanf_path(tmp_path, "%d", &devnum) != 1) // XXX is this a decimal value?
+	if (scanf_path(tmp_path, "%d", &devnum) != 1)
 		return -1;
 	
 	snprintf(tmp_path,
@@ -108,9 +108,8 @@ int get_device(int vid, int pid)
 	return open(tmp_path, O_RDWR);
 }
 
-int claim_interface(int fd)
+int claim_interface(int fd, int ifnum)
 {
-	int ifnum = 0;
 	return ioctl(fd, USBDEVFS_CLAIMINTERFACE, &ifnum);
 }
 
@@ -149,7 +148,7 @@ int ep_write(int fd,
 int ctrl_transfer_unbounded(int fd, int length)
 {
 	int buf_size = sizeof(struct usb_ctrlrequest) + length;
-	char *buffer = calloc(1, buf_size);
+	char *buffer = calloc(1, buf_size); // XXX this is a big allocation
 	struct usbdevfs_urb *purb;
 	
 	struct usb_ctrlrequest *ctrl_req = (struct usb_ctrlrequest *) buffer;
@@ -158,11 +157,11 @@ int ctrl_transfer_unbounded(int fd, int length)
 	ctrl_req->wLength = length;
 	
 	struct usbdevfs_urb urb = {
-			.type = USBDEVFS_URB_TYPE_CONTROL,
-			.endpoint = 0,
-			.buffer = buffer,
-			.buffer_length = buf_size,
-			.usercontext = (void *) 0x1337,
+		.type = USBDEVFS_URB_TYPE_CONTROL,
+		.endpoint = 0,
+		.buffer = buffer,
+		.buffer_length = buf_size,
+		.usercontext = (void *) 0x1337,
 	};
 	
 	if (ioctl(fd, USBDEVFS_SUBMITURB, &urb) < 0)
