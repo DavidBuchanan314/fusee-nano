@@ -12,6 +12,7 @@
 #include <linux/usbdevice_fs.h>
 #include <asm/byteorder.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #include "usb.h"
 
@@ -148,7 +149,7 @@ int ep_write(int fd,
 int ctrl_transfer_unbounded(int fd, int length)
 {
 	int buf_size = sizeof(struct usb_ctrlrequest) + length;
-	char *buffer = calloc(1, buf_size); // XXX this is a big allocation
+	char *buffer = calloc(1, buf_size);
 	struct usbdevfs_urb *purb;
 	
 	struct usb_ctrlrequest *ctrl_req = (struct usb_ctrlrequest *) buffer;
@@ -163,6 +164,8 @@ int ctrl_transfer_unbounded(int fd, int length)
 		.buffer_length = buf_size,
 		.usercontext = (void *) 0x1337,
 	};
+	
+	usleep(1000*10);
 	
 	if (ioctl(fd, USBDEVFS_SUBMITURB, &urb) < 0)
 		return -1;
