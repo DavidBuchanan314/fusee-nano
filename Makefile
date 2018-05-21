@@ -1,5 +1,6 @@
 CC= gcc
-CFLAGS= -Wall -Wpedantic -Wextra -std=c99 -Os
+INTERMEZZO= ./intermezzo.bin
+CFLAGS= -Wall -Wpedantic -Wextra -std=c99 -Os -DINTERMEZZO_PATH=\"$(INTERMEZZO)\"
 OBJ= exploit.o usb.o
 TARGET= fusee-nano
 SRCDIR= ./src/
