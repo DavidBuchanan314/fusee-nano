@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# OpenWRT hotplug script to be placed in /etc/hotplug.d/usb
+
+BINARY="/usr/bin/fusee-nano /usr/share/fusee-nano/payload.bin"
+APX_PRODID="955/7321/102"
+
+if [ "${ACTION}" = "add" ]; then
+    if [ "${PRODUCT}" = "${APX_PRODID}" ]; then
+        ${BINARY}
+    fi
+fi
