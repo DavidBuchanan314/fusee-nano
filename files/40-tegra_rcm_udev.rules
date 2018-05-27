@@ -2,4 +2,4 @@
 #  idVendor           0955
 #  idProduct          7321
 
-ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0955", ATTR{idProduct}=="7321", RUN+="/usr/bin/fusee-nano /usr/share/fusse-nano/payload.bin"
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="0955", ATTR{idProduct}=="7321", RUN+="/usr/bin/fusee-nano /usr/share/fusee-nano/payload.bin"
