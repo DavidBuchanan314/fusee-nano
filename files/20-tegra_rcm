@@ -8,5 +8,11 @@ APX_PRODID="955/7321/102"
 if [ "${ACTION}" = "add" ]; then
     if [ "${PRODUCT}" = "${APX_PRODID}" ]; then
         ${BINARY}
+        echo 0 > /sys/class/leds/a5-v11\:red\:power/brightness
+        for i in 1 0 ; do
+                echo -n $i > /sys/class/leds/a5-v11\:blue\:system/brightness
+                sleep 1
+        done
+        echo 255 > /sys/class/leds/a5-v11\:red\:power/brightness
     fi
 fi
