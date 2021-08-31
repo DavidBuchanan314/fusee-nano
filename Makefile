@@ -1,5 +1,6 @@
 CC= gcc
-INTERMEZZO= ./files/intermezzo.bin
+DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+INTERMEZZO= $(DIR)/files/intermezzo.bin
 CFLAGS= -Wall -Wpedantic -Wextra -std=c99 -Os -DINTERMEZZO_PATH=\"$(INTERMEZZO)\"
 OBJ= exploit.o usb.o
 TARGET= fusee-nano
