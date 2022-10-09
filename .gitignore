@@ -53,3 +53,9 @@ dkms.conf
 
 fusee-nano
 /*.bin
+
+##Packaging
+*.AppImage
+*.tgz
+appimage-build/
+AppDir/
