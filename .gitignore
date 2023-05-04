@@ -53,3 +53,4 @@ dkms.conf
 
 fusee-nano
 /*.bin
+src/intermezzo.h
