@@ -1,19 +1,26 @@
 CC= gcc
-INTERMEZZO= ./files/intermezzo.bin
-CFLAGS= -Wall -Wpedantic -Wextra -std=c99 -Os -DINTERMEZZO_PATH=\"$(INTERMEZZO)\"
+INTERMEZZO=./files/intermezzo.bin
+CFLAGS= -Wall -Wpedantic -Wextra -std=gnu99 -Os
 OBJ= exploit.o usb.o
 TARGET= fusee-nano
-SRCDIR= ./src/
+SRCDIR= ./src
+PREFIX=/usr/bin
 
-.PHONY: clean
+.PHONY: clean install
 
 all: $(TARGET)
 
-%.o: $(SRCDIR)%.c
+%.o: $(SRCDIR)/%.c $(SRCDIR)/intermezzo.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(TARGET): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
+src/intermezzo.h: $(INTERMEZZO)
+	xxd -n intermezzo -i $< > $@
+
 clean:
-	rm $(TARGET) $(OBJ)
+	rm -f $(TARGET) $(OBJ) $(SRCDIR)/intermezzo.h
+
+install: $(TARGET)
+	install $(TARGET) $(PREFIX)
