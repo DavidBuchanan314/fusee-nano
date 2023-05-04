@@ -23,4 +23,4 @@ clean:
 	rm -f $(TARGET) $(OBJ) $(SRCDIR)/intermezzo.h
 
 install: $(TARGET)
-	install -m755 $(TARGET) $(PREFIX)
+	install -Dm755 $(TARGET) $(PREFIX)
