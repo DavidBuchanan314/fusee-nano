@@ -1,6 +1,6 @@
 # Maintainer: David Buchanan <d@vidbuchanan.co.uk>
 pkgname=fusee-nano
-pkgver=0.5.2
+pkgver=0.5.3
 pkgrel=1
 pkgdesc="A minimalist re-implementation of the Fusée Gelée exploit"
 arch=('any')
@@ -20,7 +20,7 @@ install=
 changelog=
 source=("$pkgname-$pkgver.tar.gz::https://github.com/DavidBuchanan314/fusee-nano/archive/refs/tags/$pkgver.tar.gz")
 noextract=()
-sha256sums=("a58539e5f8073a36ac1bec799abdca6ac40d13ec26604c7aca0db7c8308e8194")
+sha256sums=("8737fc7c842e19f288d537d6fe652b72d5c9b399a09c07beca643d3229ef012d")
 
 build() {
 	cd "$pkgname-$pkgver"
