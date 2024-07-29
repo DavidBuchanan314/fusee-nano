@@ -36,7 +36,7 @@ static int scanf_path(const char *path, const char* fmt, ...)
 	return result;
 }
 
-/* returns 0 on sucess, -1 on fail */
+/* returns 0 on success, -1 on fail */
 static int find_sysfs_dir(char *path, size_t pathlen, int vid, int pid)
 {
 	DIR *d;
