@@ -1,0 +1,48 @@
+name: Build fusee-nano
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64, armv7]
+        include:
+          - arch: amd64
+            gcc_prefix:
+          - arch: arm64
+            gcc_prefix: aarch64-linux-gnu
+          - arch: armv7
+            gcc_prefix: arm-linux-gnueabihf
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          if [ -n "${{ matrix.gcc_prefix }}" ]; then
+            sudo apt-get install -y xxd g++-${{ matrix.gcc_prefix }}
+          else
+            sudo apt-get install -y xxd g++
+          fi
+
+      - name: Build
+        run: |
+          make clean
+          if [ -n "${{ matrix.gcc_prefix }}" ]; then
+            make CC=${{ matrix.gcc_prefix }}-gcc
+          else
+            make CC=gcc
+          fi
+          zip fusee-nano-${{ matrix.arch }}.zip fusee-nano
+
+      - name: Upload artifact
+        uses: svenstaro/upload-release-action@v2
+        with:
+          file: fusee-nano-${{ matrix.arch }}.zip
+          tag: ${{ github.ref }}
