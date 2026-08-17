@@ -1,9 +1,22 @@
 # fusee-nano
 A minimalist re-implementation of the Fusée Gelée exploit, designed to run on embedded Linux devices. (Zero dependencies)
 
-### Usage example:
+### Build
+before using `fusee nano` compile it with `make`
+
+```sh
+make
 ```
-sudo ./fusee-nano fusee.bin 
+
+### Usage example
+After building the program, run it with your payload:
+
+```
+sudo ./fusee-nano fusee.bin
+```
+
+Example output:
+```sh
 [*] device id: 008403040000002xxxxxxxxxxxxxxx62
 [*] Read 92 bytes from intermezzo.bin
 [*] Read 38168 bytes from fusee.bin
